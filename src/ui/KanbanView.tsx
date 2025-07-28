@@ -16,8 +16,8 @@ const statusColors: Record<string, string> = {
   plan: "gray",
   backlog: "yellow",
   in_progress: "blue",
+  in_review: "magenta",
   done: "green",
-  cancelled: "red",
   archived: "gray",
 };
 
@@ -25,8 +25,8 @@ const statusLabels: Record<IssueStatus, string> = {
   plan: "PLAN",
   backlog: "BACKLOG",
   in_progress: "IN PROGRESS",
+  in_review: "IN REVIEW",
   done: "DONE",
-  cancelled: "CANCELLED",
   archived: "ARCHIVED",
 };
 
@@ -101,8 +101,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
     "plan",
     "backlog",
     "in_progress",
+    "in_review",
     "done",
-    "cancelled",
   ];
 
   const [selectedColumn, setSelectedColumn] = useState(initialCursorPosition?.column || 0);

@@ -1,4 +1,4 @@
-export type IssueStatus = "plan" | "backlog" | "in_progress" | "done" | "cancelled" | "archived";
+export type IssueStatus = "plan" | "backlog" | "in_progress" | "in_review" | "done" | "archived";
 
 export interface Issue {
   id: string;
@@ -13,7 +13,7 @@ export interface Issue {
   updatedAt: Date;
   startedAt?: Date;
   completedAt?: Date;
-  cancelledAt?: Date;
+  reviewStartedAt?: Date;
   archivedAt?: Date;
   agentName?: string;
   workTreePath?: string;
@@ -24,11 +24,11 @@ export interface IssueTree extends Issue {
 }
 
 export const ISSUE_STATUS_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
-  plan: ["backlog", "cancelled", "archived"],
-  backlog: ["in_progress", "cancelled", "archived"],
-  in_progress: ["done", "cancelled", "archived"],
+  plan: ["backlog", "archived"],
+  backlog: ["in_progress", "archived"],
+  in_progress: ["in_review", "done", "archived"],
+  in_review: ["in_progress", "done", "archived"],
   done: ["archived"],
-  cancelled: ["archived"],
   archived: [],
 };
 
@@ -36,7 +36,8 @@ export function canTransitionTo(
   currentStatus: IssueStatus,
   targetStatus: IssueStatus,
 ): boolean {
-  return ISSUE_STATUS_TRANSITIONS[currentStatus].includes(targetStatus);
+  // Allow any status transition
+  return true;
 }
 
 export function validateIssueHierarchyDepth(parentId: string | undefined, maxDepth = 4): boolean {

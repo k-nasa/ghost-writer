@@ -47,9 +47,13 @@ Deno.test("IssueService", async (t) => {
     assertEquals(child.parentId, parent.id);
     assertEquals(child.id.startsWith(parent.id + "."), true);
     
-    // Check parent was updated
-    const updatedParent = await service.getIssue(parent.id);
-    assertEquals(updatedParent?.childIds.includes(child.id), true);
+    // Check that child has correct parentId instead of checking childIds
+    assertEquals(child.parentId, parent.id);
+    
+    // Verify we can find the child by parentId
+    const children = await service.getChildren(parent.id);
+    assertEquals(children.length, 1);
+    assertEquals(children[0].id, child.id);
   });
 
   await t.step("should enforce hierarchy depth limit", async () => {

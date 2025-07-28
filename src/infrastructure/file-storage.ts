@@ -255,7 +255,7 @@ export class FileBasedStorage implements Storage {
       updatedAt: new Date(data.updatedAt),
       startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
       completedAt: data.completedAt ? new Date(data.completedAt) : undefined,
-      cancelledAt: data.cancelledAt ? new Date(data.cancelledAt) : undefined,
+      reviewStartedAt: data.reviewStartedAt ? new Date(data.reviewStartedAt) : undefined,
     };
   }
 
@@ -266,7 +266,7 @@ export class FileBasedStorage implements Storage {
       updatedAt: issue.updatedAt.toISOString(),
       startedAt: issue.startedAt?.toISOString(),
       completedAt: issue.completedAt?.toISOString(),
-      cancelledAt: issue.cancelledAt?.toISOString(),
+      reviewStartedAt: issue.reviewStartedAt?.toISOString(),
     };
   }
 }

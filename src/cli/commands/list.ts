@@ -15,7 +15,7 @@ export const listCommand: CommandModule<{}, ListArguments> = {
         alias: "s",
         describe: "Filter by status",
         type: "array",
-        choices: ["plan", "backlog", "in_progress", "done", "cancelled", "archived"],
+        choices: ["plan", "backlog", "in_progress", "in_review", "done", "archived"],
       })
       .option("format", {
         alias: "f",

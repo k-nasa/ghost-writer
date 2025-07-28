@@ -12,8 +12,8 @@ const statusColors: Record<string, string> = {
   plan: "gray",
   backlog: "yellow",
   in_progress: "blue",
+  in_review: "magenta",
   done: "green",
-  cancelled: "red",
 };
 
 export const IssueList: React.FC<IssueListProps> = ({ 
@@ -25,7 +25,7 @@ export const IssueList: React.FC<IssueListProps> = ({
   const [selectedStatus, setSelectedStatus] = React.useState<IssueStatus | null>(null);
   const { exit } = useApp();
 
-  const statuses: IssueStatus[] = ["plan", "backlog", "in_progress", "done", "cancelled"];
+  const statuses: IssueStatus[] = ["plan", "backlog", "in_progress", "in_review", "done"];
   
   const filteredIssues = selectedStatus 
     ? issues.filter((issue: Issue) => issue.status === selectedStatus)

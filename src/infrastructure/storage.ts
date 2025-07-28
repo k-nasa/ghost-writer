@@ -62,7 +62,7 @@ export class FileStorage implements Storage {
         updatedAt: new Date(issue.updatedAt),
         startedAt: issue.startedAt ? new Date(issue.startedAt) : undefined,
         completedAt: issue.completedAt ? new Date(issue.completedAt) : undefined,
-        cancelledAt: issue.cancelledAt ? new Date(issue.cancelledAt) : undefined,
+        reviewStartedAt: issue.reviewStartedAt ? new Date(issue.reviewStartedAt) : undefined,
       }));
     } catch (error) {
       throw new StorageError(`Failed to read issues: ${error.message}`);

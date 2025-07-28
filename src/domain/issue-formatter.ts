@@ -1,5 +1,5 @@
 import type { Issue, IssueTree } from "../types/issue.ts";
-import { gray, yellow, blue, green, red } from "@std/fmt/colors";
+import { gray, yellow, blue, green, red, magenta } from "@std/fmt/colors";
 
 export class IssueFormatter {
   constructor() {
@@ -116,14 +116,14 @@ export class IssueFormatter {
   }
 
   private formatIssueText(issue: Issue, depth: number = 0, issueMap?: Map<string, Issue>): string {
-    const status = this.formatStatusText(issue.status);
+    const statusEmoji = this.getStatusEmoji(issue.status);
     const title = issue.title;
     
     // Add indentation based on depth
     const indent = "  ".repeat(depth);
     const prefix = depth > 0 ? "└─ " : "";
     
-    let line = `${indent}${prefix}${status} ${title} (${issue.id})`;
+    let line = `${indent}${prefix}${statusEmoji} ${issue.id} ${title}`;
     
     if (issue.dependsOn.length > 0) {
       // Get titles for dependencies
@@ -143,6 +143,25 @@ export class IssueFormatter {
     return line;
   }
 
+  private getStatusEmoji(status: string): string {
+    switch (status) {
+      case "plan":
+        return "📋";
+      case "backlog":
+        return "📌";
+      case "in_progress":
+        return "🔄";
+      case "in_review":
+        return "🔍";
+      case "done":
+        return "✅";
+      case "archived":
+        return "📦";
+      default:
+        return "❓";
+    }
+  }
+
 
   private formatStatusText(status: string): string {
     const statusText = this.getStatusLabel(status);
@@ -153,10 +172,10 @@ export class IssueFormatter {
         return yellow(statusText);
       case "in_progress":
         return blue(statusText);
+      case "in_review":
+        return magenta(statusText);
       case "done":
         return green(statusText);
-      case "cancelled":
-        return red(statusText);
       case "archived":
         return gray(statusText);
       default:
@@ -172,10 +191,10 @@ export class IssueFormatter {
         return "[BACKLOG]";
       case "in_progress":
         return "[IN PROGRESS]";
+      case "in_review":
+        return "[IN REVIEW]";
       case "done":
         return "[DONE]";
-      case "cancelled":
-        return "[CANCELLED]";
       case "archived":
         return "[ARCHIVED]";
       default:
@@ -190,9 +209,9 @@ export class IssueFormatter {
     isLast: boolean,
   ): void {
     const connector = isLast ? "└── " : "├── ";
-    const status = this.formatStatusText(node.status);
+    const statusEmoji = this.getStatusEmoji(node.status);
     
-    let line = `${prefix}${connector}${status} ${node.title} (${node.id})`;
+    let line = `${prefix}${connector}${statusEmoji} ${node.title}`;
     
     if (node.dependsOn.length > 0) {
       line += ` (→ ${node.dependsOn.length})`;

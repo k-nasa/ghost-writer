@@ -18,7 +18,7 @@ export const updateCommand: CommandModule<{}, UpdateArguments> = {
         alias: "s",
         describe: "New status for the issue",
         type: "string",
-        choices: ["plan", "backlog", "in_progress", "done", "cancelled"],
+        choices: ["plan", "backlog", "in_progress", "in_review", "done", "archived"],
       })
       .option("title", {
         alias: "t",

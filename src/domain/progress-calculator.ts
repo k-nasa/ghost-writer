@@ -22,9 +22,14 @@ export class ProgressCalculator {
       return { completed: 0, total: 0, percentage: 0 };
     }
 
+    // Get children by filtering issues with this parentId
+    const children = Array.from(this.issueMap.values()).filter(
+      i => i.parentId === issueId
+    );
+
     // If no children, check if this issue itself is completed
-    if (issue.childIds.length === 0) {
-      const isCompleted = issue.status === "done" || issue.status === "cancelled";
+    if (children.length === 0) {
+      const isCompleted = issue.status === "done";
       return {
         completed: isCompleted ? 1 : 0,
         total: 1,
@@ -36,8 +41,8 @@ export class ProgressCalculator {
     let totalCompleted = 0;
     let totalCount = 0;
 
-    for (const childId of issue.childIds) {
-      const childProgress = this.calculateProgress(childId);
+    for (const child of children) {
+      const childProgress = this.calculateProgress(child.id);
       totalCompleted += childProgress.completed;
       totalCount += childProgress.total;
     }

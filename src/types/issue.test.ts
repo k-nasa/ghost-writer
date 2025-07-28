@@ -6,28 +6,43 @@ import {
 } from "./issue.ts";
 
 Deno.test("canTransitionTo", async (t) => {
-  await t.step("should allow valid transitions", () => {
+  await t.step("should allow all transitions", () => {
+    // All transitions are allowed now
     assert(canTransitionTo("plan", "backlog"));
-    assert(canTransitionTo("plan", "cancelled"));
+    assert(canTransitionTo("plan", "in_progress"));
+    assert(canTransitionTo("plan", "done"));
+    assert(canTransitionTo("plan", "in_review"));
+    assert(canTransitionTo("plan", "archived"));
+    
+    assert(canTransitionTo("backlog", "plan"));
     assert(canTransitionTo("backlog", "in_progress"));
-    assert(canTransitionTo("backlog", "cancelled"));
+    assert(canTransitionTo("backlog", "done"));
+    assert(canTransitionTo("backlog", "in_review"));
+    assert(canTransitionTo("backlog", "archived"));
+    
+    assert(canTransitionTo("in_progress", "plan"));
+    assert(canTransitionTo("in_progress", "backlog"));
     assert(canTransitionTo("in_progress", "done"));
-    assert(canTransitionTo("in_progress", "cancelled"));
-  });
-
-  await t.step("should disallow invalid transitions", () => {
-    assert(!canTransitionTo("plan", "in_progress"));
-    assert(!canTransitionTo("plan", "done"));
-    assert(!canTransitionTo("backlog", "done"));
-    assert(!canTransitionTo("done", "cancelled"));
-    assert(!canTransitionTo("cancelled", "done"));
-  });
-
-  await t.step("should disallow transitions from terminal states", () => {
-    assert(!canTransitionTo("done", "plan"));
-    assert(!canTransitionTo("done", "backlog"));
-    assert(!canTransitionTo("cancelled", "plan"));
-    assert(!canTransitionTo("cancelled", "backlog"));
+    assert(canTransitionTo("in_progress", "in_review"));
+    assert(canTransitionTo("in_progress", "archived"));
+    
+    assert(canTransitionTo("in_review", "plan"));
+    assert(canTransitionTo("in_review", "backlog"));
+    assert(canTransitionTo("in_review", "in_progress"));
+    assert(canTransitionTo("in_review", "done"));
+    assert(canTransitionTo("in_review", "archived"));
+    
+    assert(canTransitionTo("done", "plan"));
+    assert(canTransitionTo("done", "backlog"));
+    assert(canTransitionTo("done", "in_progress"));
+    assert(canTransitionTo("done", "in_review"));
+    assert(canTransitionTo("done", "archived"));
+    
+    assert(canTransitionTo("archived", "plan"));
+    assert(canTransitionTo("archived", "backlog"));
+    assert(canTransitionTo("archived", "in_progress"));
+    assert(canTransitionTo("archived", "in_review"));
+    assert(canTransitionTo("archived", "done"));
   });
 });
 

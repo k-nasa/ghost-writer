@@ -114,7 +114,7 @@ Deno.test("IssueFormatter", async (t) => {
     const root2: Issue = {
       id: "root-2",
       title: "Second Root",
-      status: "cancelled",
+      status: "in_review",
       childIds: [],
       dependsOn: [],
       dependedBy: [],
@@ -128,7 +128,7 @@ Deno.test("IssueFormatter", async (t) => {
     const expectedLines = [
       "✅ root-1 First Root",
       "  └─ ✅ child-1 Child of First",
-      "❌ root-2 Second Root",
+      "🔍 root-2 Second Root",
     ];
     
     assertEquals(result, expectedLines.join("\n"));

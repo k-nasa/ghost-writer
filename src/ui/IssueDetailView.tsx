@@ -18,10 +18,8 @@ export const IssueDetailView: React.FC<IssueDetailViewProps> = ({ issue, allIssu
   // Split description by newlines for proper display
   const descriptionLines = issue.description?.split('\n') || [];
   
-  // Get child issues
-  const childIssues = issue.childIds
-    .map(childId => allIssues.find(i => i.id === childId))
-    .filter(child => child !== undefined) as Issue[];
+  // Get child issues by parentId
+  const childIssues = allIssues.filter(i => i.parentId === issue.id);
 
   return (
     <Box flexDirection="column" flexGrow={1} padding={1}>

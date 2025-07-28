@@ -50,14 +50,7 @@ export class IssueService {
     const storage = await getStorage();
     await storage.saveIssue(issue);
 
-    // Update parent's childIds if applicable
-    if (parentId) {
-      const parent = await storage.getIssue(parentId);
-      if (parent) {
-        parent.childIds.push(issue.id);
-        await storage.updateIssue(parentId, { childIds: parent.childIds });
-      }
-    }
+    // No need to update parent's childIds anymore - we use parentId for relationship
 
     return issue;
   }
@@ -104,11 +97,14 @@ export class IssueService {
       case "in_progress":
         updates.startedAt = new Date();
         break;
+      case "in_review":
+        updates.reviewStartedAt = new Date();
+        break;
       case "done":
         updates.completedAt = new Date();
         break;
-      case "cancelled":
-        updates.cancelledAt = new Date();
+      case "archived":
+        updates.archivedAt = new Date();
         break;
     }
 
@@ -249,6 +245,12 @@ export class IssueService {
     return false;
   }
 
+  async getChildren(parentId: string): Promise<Issue[]> {
+    const storage = await getStorage();
+    const allIssues = await storage.getIssues();
+    return allIssues.filter(issue => issue.parentId === parentId);
+  }
+
   async archiveIssue(issueId: string): Promise<void> {
     const storage = await getStorage();
     const issue = await storage.getIssue(issueId);
@@ -258,8 +260,9 @@ export class IssueService {
     }
 
     // Recursively archive all children
-    for (const childId of issue.childIds) {
-      await this.archiveIssue(childId);
+    const children = await this.getChildren(issueId);
+    for (const child of children) {
+      await this.archiveIssue(child.id);
     }
 
     // Update the issue status to archived
