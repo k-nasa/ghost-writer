@@ -8,6 +8,8 @@ interface KanbanViewProps {
   allIssues?: Issue[]; // For progress calculation
   onSelectIssue: (issue: Issue | null) => void;
   onStatusChange: (issueId: string, newStatus: IssueStatus) => void;
+  initialCursorPosition?: { column: number; row: number };
+  onCursorPositionChange?: (position: { column: number; row: number }) => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -92,6 +94,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   allIssues,
   onSelectIssue,
   onStatusChange,
+  initialCursorPosition,
+  onCursorPositionChange,
 }: KanbanViewProps) => {
   const statuses: IssueStatus[] = [
     "plan",
@@ -101,8 +105,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
     "cancelled",
   ];
 
-  const [selectedColumn, setSelectedColumn] = useState(0);
-  const [selectedRow, setSelectedRow] = useState(0);
+  const [selectedColumn, setSelectedColumn] = useState(initialCursorPosition?.column || 0);
+  const [selectedRow, setSelectedRow] = useState(initialCursorPosition?.row || 0);
 
   // Issue grouping
   const issuesByStatus = statuses.reduce((acc, status) => {
@@ -113,10 +117,24 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   const currentColumnIssues = issuesByStatus[statuses[selectedColumn]];
   const currentHighlightedIssue = currentColumnIssues[selectedRow] || null;
 
+  // Adjust row if it's out of bounds after issues change
+  React.useEffect(() => {
+    const maxRow = currentColumnIssues.length - 1;
+    if (selectedRow > maxRow && maxRow >= 0) {
+      setSelectedRow(maxRow);
+    } else if (currentColumnIssues.length === 0) {
+      setSelectedRow(0);
+    }
+  }, [currentColumnIssues.length]);
+
   // Update selected issue when cursor moves
   React.useEffect(() => {
     if (currentHighlightedIssue) {
       onSelectIssue(currentHighlightedIssue);
+    }
+    // Notify parent about cursor position change
+    if (onCursorPositionChange) {
+      onCursorPositionChange({ column: selectedColumn, row: selectedRow });
     }
   }, [selectedColumn, selectedRow, currentHighlightedIssue?.id]);
 

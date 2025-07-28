@@ -28,6 +28,7 @@ export const TuiApp: React.FC = () => {
   const [showDetail, setShowDetail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [kanbanCursorPosition, setKanbanCursorPosition] = useState({ column: 0, row: 0 });
 
   // デバッグログを初期化
   useEffect(() => {
@@ -304,6 +305,8 @@ export const TuiApp: React.FC = () => {
                 allIssues={issues}
                 onSelectIssue={handleSelectIssue}
                 onStatusChange={handleStatusChange}
+                initialCursorPosition={kanbanCursorPosition}
+                onCursorPositionChange={setKanbanCursorPosition}
               />
             ) : (
               <DependencyView
