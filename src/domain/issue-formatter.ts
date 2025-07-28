@@ -116,14 +116,14 @@ export class IssueFormatter {
   }
 
   private formatIssueText(issue: Issue, depth: number = 0, issueMap?: Map<string, Issue>): string {
-    const statusEmoji = this.getStatusEmoji(issue.status);
+    const statusText = this.formatStatusText(issue.status);
     const title = issue.title;
     
     // Add indentation based on depth
     const indent = "  ".repeat(depth);
     const prefix = depth > 0 ? "└─ " : "";
     
-    let line = `${indent}${prefix}${statusEmoji} ${issue.id} ${title}`;
+    let line = `${indent}${prefix}${statusText} ${issue.id} ${title}`;
     
     if (issue.dependsOn.length > 0) {
       // Get titles for dependencies
@@ -142,26 +142,6 @@ export class IssueFormatter {
     
     return line;
   }
-
-  private getStatusEmoji(status: string): string {
-    switch (status) {
-      case "plan":
-        return "📋";
-      case "backlog":
-        return "📌";
-      case "in_progress":
-        return "🔄";
-      case "in_review":
-        return "🔍";
-      case "done":
-        return "✅";
-      case "archived":
-        return "📦";
-      default:
-        return "❓";
-    }
-  }
-
 
   private formatStatusText(status: string): string {
     const statusText = this.getStatusLabel(status);
@@ -209,9 +189,9 @@ export class IssueFormatter {
     isLast: boolean,
   ): void {
     const connector = isLast ? "└── " : "├── ";
-    const statusEmoji = this.getStatusEmoji(node.status);
+    const statusText = this.formatStatusText(node.status);
     
-    let line = `${prefix}${connector}${statusEmoji} ${node.title}`;
+    let line = `${prefix}${connector}${statusText} ${node.title}`;
     
     if (node.dependsOn.length > 0) {
       line += ` (→ ${node.dependsOn.length})`;
