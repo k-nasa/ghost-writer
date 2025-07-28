@@ -6,12 +6,11 @@ import { KanbanView } from "./KanbanView.tsx";
 import { DependencyView } from "./DependencyView.tsx";
 import { IssueForm } from "./IssueForm.tsx";
 import { IssueEditForm } from "./IssueEditForm.tsx";
-import { IssueDetailView } from "./IssueDetailView.tsx";
 import { initDebugLog } from "./debug-logger.ts";
 import { ConfirmDialog } from "./ConfirmDialog.tsx";
 
 type ViewMode = "kanban" | "dependency";
-type AppMode = "view" | "create" | "edit" | "detail" | "confirm-delete";
+type AppMode = "view" | "create" | "edit" | "confirm-delete";
 
 interface ActionItem {
   key: string;
@@ -25,7 +24,6 @@ export const TuiApp: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("kanban");
   const [appMode, setAppMode] = useState<AppMode>("view");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
-  const [showDetail, setShowDetail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [kanbanCursorPosition, setKanbanCursorPosition] = useState({ column: 0, row: 0 });
@@ -76,12 +74,6 @@ export const TuiApp: React.FC = () => {
           appMode === "view",
       },
       {
-        key: "s",
-        label: "S(show)",
-        description: "Show details",
-        enabled: selectedIssue !== null && appMode === "view",
-      },
-      {
         key: "d",
         label: "D(delete)",
         description: "Archive issue",
@@ -129,12 +121,6 @@ export const TuiApp: React.FC = () => {
       case "a":
         if (selectedIssue && selectedIssue.status === "plan") {
           handleApproveIssue(selectedIssue.id);
-        }
-        break;
-      case "s":
-        if (selectedIssue && !showDetail) {
-          setAppMode("detail");
-          setShowDetail(true);
         }
         break;
       case "d":
@@ -278,18 +264,7 @@ export const TuiApp: React.FC = () => {
           />
         )}
 
-        {appMode === "detail" && selectedIssue && (
-          <IssueDetailView
-            issue={selectedIssue}
-            allIssues={issues}
-            onClose={() => {
-              setAppMode("view");
-              setShowDetail(false);
-            }}
-          />
-        )}
-
-        {appMode === "confirm-delete" && selectedIssue && (
+{appMode === "confirm-delete" && selectedIssue && (
           <ConfirmDialog
             message={`Are you sure you want to archive "${selectedIssue.title}" and all its children?`}
             onConfirm={confirmDeleteIssue}
@@ -319,6 +294,25 @@ export const TuiApp: React.FC = () => {
         )}
       </Box>
 
+      {/* Help text */}
+      <Box
+        flexDirection="column"
+        borderStyle="single"
+        borderColor="gray"
+        paddingX={1}
+        marginTop={1}
+      >
+        <Text color="gray">
+          Navigation: ↑↓←→/hjkl | Status: m=move mode | Actions: {viewMode === "kanban" ? "Enter=select & move" : "Enter=toggle expand"}
+        </Text>
+        {selectedIssue && (
+          <Text color="cyan" wrap="truncate">
+            Selected: {selectedIssue.title} [{selectedIssue.status}]
+          </Text>
+        )}
+      </Box>
+
+      {/* Action bar */}
       <Box
         flexDirection="column"
         borderStyle="single"

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Box, Text, useInput } from "ink";
 import { Issue, IssueStatus } from "../types/issue.ts";
 import { ProgressCalculator, IssueProgress } from "../domain/progress-calculator.ts";
+import { IssuePreview } from "./IssuePreview.tsx";
 
 interface KanbanViewProps {
   issues: Issue[];
@@ -235,80 +236,81 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
           setMovingIssue(currentHighlightedIssue);
           setTargetColumn(selectedColumn);
         }
-      } else if (input === "M") {
-        // Shift+M: Move to previous status
-        if (currentHighlightedIssue) {
-          const currentStatusIndex = statuses.indexOf(currentHighlightedIssue.status);
-          if (currentStatusIndex > 0) {
-            const previousStatus = statuses[currentStatusIndex - 1];
-            onStatusChange(currentHighlightedIssue.id, previousStatus);
-          }
-        }
       }
     }
   });
 
   return (
-    <Box flexDirection="column" flexGrow={1}>
-      <Box marginBottom={1}>
-        <Text bold color="green">
-          Kanban Board
-        </Text>
-        <Text color="gray">
-          {" "}
-          {isMovingMode
-            ? "(h/l: move, Enter: confirm, ESC: cancel)"
-            : "(arrows/hjkl: navigate, m: move status, M: revert status)"}
-        </Text>
-      </Box>
-      {isMovingMode && movingIssue && (
+    <Box flexGrow={1}>
+      {/* Main container with kanban board (70%) and preview (30%) */}
+      <Box width="70%" flexDirection="column" paddingRight={1}>
         <Box marginBottom={1}>
-          <Text color="yellow">
-            Moving: {movingIssue.title} → {statusLabels[statuses[targetColumn]]}
+          <Text bold color="green">
+            Kanban Board
+          </Text>
+          <Text color="gray">
+            {" "}
+            {isMovingMode
+              ? "(h/l: move, Enter: confirm, ESC: cancel)"
+              : "(arrows/hjkl: navigate, m: move status)"}
           </Text>
         </Box>
-      )}
+        {isMovingMode && movingIssue && (
+          <Box marginBottom={1}>
+            <Text color="yellow">
+              Moving: {movingIssue.title} → {statusLabels[statuses[targetColumn]]}
+            </Text>
+          </Box>
+        )}
 
-      <Box flexGrow={1}>
-        {statuses.map((status, colIndex) => {
-          const columnIssues = issuesByStatus[status];
-          const isSelectedColumn = selectedColumn === colIndex;
+        <Box flexGrow={1}>
+          {statuses.map((status, colIndex) => {
+            const columnIssues = issuesByStatus[status];
+            const isSelectedColumn = selectedColumn === colIndex;
 
-          return (
-            <Box
-              key={status}
-              flexDirection="column"
-              width="20%"
-              paddingRight={1}
-            >
-              <ColumnHeader
-                status={status}
-                count={columnIssues.length}
-                isSelected={isSelectedColumn}
-                isTargetColumn={isMovingMode && targetColumn === colIndex}
-              />
+            return (
+              <Box
+                key={status}
+                flexDirection="column"
+                width="20%"
+                paddingRight={1}
+              >
+                <ColumnHeader
+                  status={status}
+                  count={columnIssues.length}
+                  isSelected={isSelectedColumn}
+                  isTargetColumn={isMovingMode && targetColumn === colIndex}
+                />
 
-              <Box flexDirection="column" flexGrow={1}>
-                {columnIssues.map((issue: Issue, rowIndex: number) => {
-                  const isMovingThisIssue = isMovingMode && movingIssue?.id === issue.id;
-                  const isTargetPosition = isMovingMode && targetColumn === colIndex && movingIssue?.id !== issue.id;
-                  
-                  return (
-                    <React.Fragment key={issue.id}>
-                      <IssueCard
-                        issue={issue}
-                        isSelected={!isMovingMode && isSelectedColumn && selectedRow === rowIndex}
-                        progress={getProgress(issue)}
-                        isMoving={isMovingThisIssue}
-                        isTarget={isTargetPosition}
-                      />
-                    </React.Fragment>
-                  );
-                })}
+                <Box flexDirection="column" flexGrow={1}>
+                  {columnIssues.map((issue: Issue, rowIndex: number) => {
+                    const isMovingThisIssue = isMovingMode && movingIssue?.id === issue.id;
+                    
+                    return (
+                      <React.Fragment key={issue.id}>
+                        <IssueCard
+                          issue={issue}
+                          isSelected={!isMovingMode && isSelectedColumn && selectedRow === rowIndex}
+                          progress={getProgress(issue)}
+                          isMoving={isMovingThisIssue}
+                          isTarget={false}
+                        />
+                      </React.Fragment>
+                    );
+                  })}
+                </Box>
               </Box>
-            </Box>
-          );
-        })}
+            );
+          })}
+        </Box>
+      </Box>
+
+      {/* Preview panel (30%) */}
+      <Box width="30%" flexDirection="column">
+        <IssuePreview
+          issue={currentHighlightedIssue}
+          allIssues={allIssues || issues}
+        />
       </Box>
     </Box>
   );
