@@ -5,6 +5,7 @@ import { ProgressCalculator, IssueProgress } from "../domain/progress-calculator
 
 interface KanbanViewProps {
   issues: Issue[];
+  allIssues?: Issue[]; // For progress calculation
   onSelectIssue: (issue: Issue | null) => void;
   onStatusChange: (issueId: string, newStatus: IssueStatus) => void;
 }
@@ -15,6 +16,7 @@ const statusColors: Record<string, string> = {
   in_progress: "blue",
   done: "green",
   cancelled: "red",
+  archived: "gray",
 };
 
 const statusLabels: Record<IssueStatus, string> = {
@@ -23,6 +25,7 @@ const statusLabels: Record<IssueStatus, string> = {
   in_progress: "IN PROGRESS",
   done: "DONE",
   cancelled: "CANCELLED",
+  archived: "ARCHIVED",
 };
 
 
@@ -86,6 +89,7 @@ const ColumnHeader = ({
 
 export const KanbanView: React.FC<KanbanViewProps> = ({
   issues,
+  allIssues,
   onSelectIssue,
   onStatusChange,
 }: KanbanViewProps) => {
@@ -116,8 +120,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
     }
   }, [selectedColumn, selectedRow, currentHighlightedIssue?.id]);
 
-  // Progress calculator
-  const progressCalculator = new ProgressCalculator(issues);
+  // Progress calculator - use all issues for accurate calculation
+  const progressCalculator = new ProgressCalculator(allIssues || issues);
 
   // Calculate progress values
   const getProgress = (issue: Issue) => {

@@ -1,4 +1,4 @@
-export type IssueStatus = "plan" | "backlog" | "in_progress" | "done" | "cancelled";
+export type IssueStatus = "plan" | "backlog" | "in_progress" | "done" | "cancelled" | "archived";
 
 export interface Issue {
   id: string;
@@ -14,6 +14,7 @@ export interface Issue {
   startedAt?: Date;
   completedAt?: Date;
   cancelledAt?: Date;
+  archivedAt?: Date;
   agentName?: string;
   workTreePath?: string;
 }
@@ -23,11 +24,12 @@ export interface IssueTree extends Issue {
 }
 
 export const ISSUE_STATUS_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
-  plan: ["backlog", "cancelled"],
-  backlog: ["in_progress", "cancelled"],
-  in_progress: ["done", "cancelled"],
-  done: [],
-  cancelled: [],
+  plan: ["backlog", "cancelled", "archived"],
+  backlog: ["in_progress", "cancelled", "archived"],
+  in_progress: ["done", "cancelled", "archived"],
+  done: ["archived"],
+  cancelled: ["archived"],
+  archived: [],
 };
 
 export function canTransitionTo(

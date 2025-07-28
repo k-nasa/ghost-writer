@@ -15,7 +15,7 @@ export const listCommand: CommandModule<{}, ListArguments> = {
         alias: "s",
         describe: "Filter by status",
         type: "array",
-        choices: ["plan", "backlog", "in_progress", "done", "cancelled"],
+        choices: ["plan", "backlog", "in_progress", "done", "cancelled", "archived"],
       })
       .option("format", {
         alias: "f",
@@ -39,7 +39,13 @@ export const listCommand: CommandModule<{}, ListArguments> = {
         ? { status: (Array.isArray(argv.status) ? argv.status : [argv.status]) as IssueStatus[] }
         : undefined;
 
-      const issues = await issueService.getIssues(filters);
+      let issues = await issueService.getIssues(filters);
+      
+      // Filter out archived issues by default (unless specifically requested)
+      if (!filters?.status?.includes("archived" as IssueStatus)) {
+        issues = issues.filter(issue => issue.status !== "archived");
+      }
+      
       const formatter = new IssueFormatter();
 
       let output: string;

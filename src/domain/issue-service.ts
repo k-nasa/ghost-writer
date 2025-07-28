@@ -248,4 +248,24 @@ export class IssueService {
 
     return false;
   }
+
+  async archiveIssue(issueId: string): Promise<void> {
+    const storage = await getStorage();
+    const issue = await storage.getIssue(issueId);
+    
+    if (!issue) {
+      throw new IssueNotFoundError(issueId);
+    }
+
+    // Recursively archive all children
+    for (const childId of issue.childIds) {
+      await this.archiveIssue(childId);
+    }
+
+    // Update the issue status to archived
+    await this.updateIssue(issueId, { 
+      status: "archived" as IssueStatus,
+      archivedAt: new Date()
+    });
+  }
 }

@@ -4,18 +4,24 @@ import { Issue } from "../types/issue.ts";
 
 interface IssueDetailViewProps {
   issue: Issue;
+  allIssues: Issue[];
   onClose: () => void;
 }
 
-export const IssueDetailView: React.FC<IssueDetailViewProps> = ({ issue, onClose }: IssueDetailViewProps) => {
+export const IssueDetailView: React.FC<IssueDetailViewProps> = ({ issue, allIssues, onClose }: IssueDetailViewProps) => {
   useInput((input, key) => {
-    if (key.escape || input === "q" || input === "d") {
+    if (key.escape || input === "q" || input === "s") {
       onClose();
     }
   });
 
   // Split description by newlines for proper display
   const descriptionLines = issue.description?.split('\n') || [];
+  
+  // Get child issues
+  const childIssues = issue.childIds
+    .map(childId => allIssues.find(i => i.id === childId))
+    .filter(child => child !== undefined) as Issue[];
 
   return (
     <Box flexDirection="column" flexGrow={1} padding={1}>
@@ -46,10 +52,16 @@ export const IssueDetailView: React.FC<IssueDetailViewProps> = ({ issue, onClose
           </Box>
         )}
 
-        {issue.childIds.length > 0 && (
-          <Box marginBottom={1}>
-            <Text bold color="cyan">Children: </Text>
-            <Text color="gray">{issue.childIds.length} sub-tasks</Text>
+        {childIssues.length > 0 && (
+          <Box marginBottom={1} flexDirection="column">
+            <Text bold color="cyan">Children ({childIssues.length} sub-tasks):</Text>
+            <Box flexDirection="column" marginLeft={2}>
+              {childIssues.map((child) => (
+                <Box key={child.id}>
+                  <Text color="gray">• {child.title} [{child.status}]</Text>
+                </Box>
+              ))}
+            </Box>
           </Box>
         )}
 
@@ -79,7 +91,7 @@ export const IssueDetailView: React.FC<IssueDetailViewProps> = ({ issue, onClose
       </Box>
 
       <Box marginTop={1} justifyContent="center">
-        <Text color="gray">Press ESC, Q, or D to close</Text>
+        <Text color="gray">Press ESC, Q, or S to close</Text>
       </Box>
     </Box>
   );

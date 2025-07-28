@@ -8,9 +8,10 @@ import { IssueForm } from "./IssueForm.tsx";
 import { IssueEditForm } from "./IssueEditForm.tsx";
 import { IssueDetailView } from "./IssueDetailView.tsx";
 import { initDebugLog } from "./debug-logger.ts";
+import { ConfirmDialog } from "./ConfirmDialog.tsx";
 
 type ViewMode = "kanban" | "dependency";
-type AppMode = "view" | "create" | "edit" | "detail";
+type AppMode = "view" | "create" | "edit" | "detail" | "confirm-delete";
 
 interface ActionItem {
   key: string;
@@ -55,6 +56,11 @@ export const TuiApp: React.FC = () => {
     loadIssues();
   }, []);
 
+  // Filter to show only root issues (no parent) and not archived
+  const rootIssues = useMemo(() => {
+    return issues.filter((issue: Issue) => !issue.parentId && issue.status !== "archived");
+  }, [issues]);
+
 
   // Define actions
   const actions: ActionItem[] = useMemo(
@@ -69,9 +75,15 @@ export const TuiApp: React.FC = () => {
           appMode === "view",
       },
       {
-        key: "d",
-        label: "D(detail)",
+        key: "s",
+        label: "S(show)",
         description: "Show details",
+        enabled: selectedIssue !== null && appMode === "view",
+      },
+      {
+        key: "d",
+        label: "D(delete)",
+        description: "Archive issue",
         enabled: selectedIssue !== null && appMode === "view",
       },
       {
@@ -118,10 +130,15 @@ export const TuiApp: React.FC = () => {
           handleApproveIssue(selectedIssue.id);
         }
         break;
-      case "d":
+      case "s":
         if (selectedIssue && !showDetail) {
           setAppMode("detail");
           setShowDetail(true);
+        }
+        break;
+      case "d":
+        if (selectedIssue) {
+          handleDeleteIssue();
         }
         break;
       case "e":
@@ -200,6 +217,28 @@ export const TuiApp: React.FC = () => {
     setSelectedIssue(issue);
   };
 
+  // Handle issue deletion
+  const handleDeleteIssue = () => {
+    if (selectedIssue) {
+      setAppMode("confirm-delete");
+    }
+  };
+
+  // Confirm and execute deletion (archive)
+  const confirmDeleteIssue = async () => {
+    if (!selectedIssue) return;
+    
+    try {
+      await issueService.archiveIssue(selectedIssue.id);
+      setAppMode("view");
+      setSelectedIssue(null);
+      await loadIssues();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to archive issue");
+      setAppMode("view");
+    }
+  };
+
   const actionBarHeight = 3;
 
   if (loading) {
@@ -241,6 +280,7 @@ export const TuiApp: React.FC = () => {
         {appMode === "detail" && selectedIssue && (
           <IssueDetailView
             issue={selectedIssue}
+            allIssues={issues}
             onClose={() => {
               setAppMode("view");
               setShowDetail(false);
@@ -248,17 +288,26 @@ export const TuiApp: React.FC = () => {
           />
         )}
 
+        {appMode === "confirm-delete" && selectedIssue && (
+          <ConfirmDialog
+            message={`Are you sure you want to archive "${selectedIssue.title}" and all its children?`}
+            onConfirm={confirmDeleteIssue}
+            onCancel={() => setAppMode("view")}
+          />
+        )}
+
         {appMode === "view" && (
           <>
             {viewMode === "kanban" ? (
               <KanbanView
-                issues={issues}
+                issues={rootIssues}
+                allIssues={issues}
                 onSelectIssue={handleSelectIssue}
                 onStatusChange={handleStatusChange}
               />
             ) : (
               <DependencyView
-                issues={issues}
+                issues={rootIssues}
                 onSelectIssue={handleSelectIssue}
                 selectedIssue={selectedIssue}
               />

@@ -123,7 +123,7 @@ export class IssueFormatter {
     const indent = "  ".repeat(depth);
     const prefix = depth > 0 ? "└─ " : "";
     
-    let line = `${indent}${prefix}${status} ${title}`;
+    let line = `${indent}${prefix}${status} ${title} (${issue.id})`;
     
     if (issue.dependsOn.length > 0) {
       // Get titles for dependencies
@@ -157,6 +157,8 @@ export class IssueFormatter {
         return green(statusText);
       case "cancelled":
         return red(statusText);
+      case "archived":
+        return gray(statusText);
       default:
         return statusText;
     }
@@ -174,6 +176,8 @@ export class IssueFormatter {
         return "[DONE]";
       case "cancelled":
         return "[CANCELLED]";
+      case "archived":
+        return "[ARCHIVED]";
       default:
         return "[UNKNOWN]";
     }
@@ -188,7 +192,7 @@ export class IssueFormatter {
     const connector = isLast ? "└── " : "├── ";
     const status = this.formatStatusText(node.status);
     
-    let line = `${prefix}${connector}${status} ${node.title}`;
+    let line = `${prefix}${connector}${status} ${node.title} (${node.id})`;
     
     if (node.dependsOn.length > 0) {
       line += ` (→ ${node.dependsOn.length})`;
