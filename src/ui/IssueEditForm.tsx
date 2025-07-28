@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text } from "ink";
+import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { Issue, IssueStatus } from "../types/issue.ts";
 
@@ -19,6 +19,13 @@ export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, o
   });
   const [currentInput, setCurrentInput] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
+
+  // Handle ESC key to cancel
+  useInput((input, key) => {
+    if (key.escape) {
+      onCancel();
+    }
+  });
 
   const handleSubmit = (value: string) => {
     setError(null);
@@ -122,7 +129,7 @@ export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, o
         {renderStep()}
       </Box>
       <Box marginTop={1}>
-        <Text color="gray">Press Ctrl+C to cancel</Text>
+        <Text color="gray">Press ESC to cancel</Text>
       </Box>
     </Box>
   );
