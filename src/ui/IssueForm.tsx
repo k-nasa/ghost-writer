@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { Issue, IssueStatus } from "../types/issue.ts";
+import { MultilineTextInput } from "./MultilineTextInput.tsx";
 
 interface IssueFormProps {
   onSubmit: (issue: Partial<Issue>) => void;
@@ -20,10 +21,21 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, onCancel }: Issu
   const [currentInput, setCurrentInput] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
-  // Handle ESC key to cancel
+  // Handle ESC key to cancel and Tab for navigation
   useInput((input, key) => {
     if (key.escape) {
       onCancel();
+    }
+    
+    // Tab to move to next field (from title to description)
+    if (key.tab && step === "title" && formData.title) {
+      handleSubmit(formData.title);
+    }
+    
+    // Shift+Tab to go back
+    if (key.shift && key.tab && step === "description") {
+      setStep("title");
+      setCurrentInput(formData.title);
     }
   });
 
@@ -66,11 +78,17 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, onCancel }: Issu
         return (
           <Box flexDirection="column">
             <Text>Enter description (optional):</Text>
-            <TextInput
-              value={currentInput}
-              onChange={setCurrentInput}
-              onSubmit={handleSubmit}
-            />
+            <Text color="gray">You can write multiple lines. Press Enter for new line.</Text>
+            <Box marginTop={1}>
+              <MultilineTextInput
+                value={currentInput}
+                onChange={setCurrentInput}
+                onSubmit={handleSubmit}
+                placeholder="Write your description here..."
+                rows={5}
+                showLineNumbers={true}
+              />
+            </Box>
           </Box>
         );
 
@@ -86,8 +104,12 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, onCancel }: Issu
         )}
         {renderStep()}
       </Box>
-      <Box marginTop={1}>
-        <Text color="gray">Press ESC to cancel</Text>
+      <Box marginTop={1} flexDirection="column">
+        <Text color="gray">
+          {step === "title" ? "Tab: Next field • " : ""}
+          {step === "description" ? "Shift+Tab: Previous field • Ctrl+Enter: Submit • " : ""}
+          ESC: Cancel
+        </Text>
       </Box>
     </Box>
   );
