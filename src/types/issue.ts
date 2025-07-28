@@ -6,7 +6,6 @@ export interface Issue {
   description?: string;
   status: IssueStatus;
   parentId?: string;
-  childIds: string[];
   dependsOn: string[];
   dependedBy: string[];
   createdAt: Date;

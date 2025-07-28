@@ -40,7 +40,6 @@ export class IssueService {
       description,
       status: "plan",
       parentId,
-      childIds: [],
       dependsOn: [],
       dependedBy: [],
       createdAt: new Date(),
@@ -309,9 +308,8 @@ export class IssueService {
       }
     }
 
-    // Update parent's childIds
+    // Update parent's updatedAt timestamp
     await storage.updateIssue(parentId, { 
-      childIds: childIds,
       updatedAt: new Date()
     });
 

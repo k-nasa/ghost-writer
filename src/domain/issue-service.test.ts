@@ -28,7 +28,6 @@ Deno.test("IssueService", async (t) => {
     assertExists(issue.id);
     assertEquals(issue.title, "Test Issue");
     assertEquals(issue.status, "plan");
-    assertEquals(issue.childIds.length, 0);
     assertEquals(issue.dependsOn.length, 0);
   });
 

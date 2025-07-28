@@ -70,7 +70,6 @@ export function createMockIssue(overrides: Partial<Issue> = {}): Issue {
     status: "plan",
     createdAt: now,
     updatedAt: now,
-    childIds: [],
     dependsOn: [],
     dependedBy: [],
     ...overrides,
