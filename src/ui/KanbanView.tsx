@@ -173,7 +173,9 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
 
   // Calculate progress values
   const getProgress = (issue: Issue) => {
-    if (issue.childIds.length > 0) {
+    // Check if issue has children by looking at all issues
+    const hasChildren = allIssues?.some(i => i.parentId === issue.id) || false;
+    if (hasChildren) {
       return progressCalculator.calculateProgress(issue.id);
     }
     return undefined;
@@ -230,7 +232,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       } else if (key.return) {
         if (currentHighlightedIssue) {
           // Check if issue has children and drill down is available
-          if (currentHighlightedIssue.childIds && currentHighlightedIssue.childIds.length > 0 && onDrillDown) {
+          const hasChildren = allIssues?.some(i => i.parentId === currentHighlightedIssue.id) || false;
+          if (hasChildren && onDrillDown) {
             onDrillDown(currentHighlightedIssue);
           } else {
             // Update status if it's different

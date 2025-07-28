@@ -37,7 +37,8 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
   }
 
   const progressCalculator = new ProgressCalculator(allIssues);
-  const progress = issue.childIds.length > 0
+  const children = allIssues.filter(i => i.parentId === issue.id);
+  const progress = children.length > 0
     ? progressCalculator.calculateProgress(issue.id)
     : null;
 
@@ -103,22 +104,21 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
         </Box>
       )}
 
-      {issue.childIds && issue.childIds.length > 0 && (
+      {children.length > 0 && (
         <Box flexDirection="column" marginTop={1}>
-          <Text color="gray">Children ({issue.childIds.length}):</Text>
+          <Text color="gray">Children ({children.length}):</Text>
           <Box flexDirection="column" marginLeft={2} marginTop={1}>
-            {issue.childIds.slice(0, 10).map((childId) => {
-              const childIssue = allIssues.find(i => i.id === childId);
-              return childIssue ? (
-                <Box key={childId} marginBottom={0}>
+            {children.slice(0, 10).map((childIssue) => {
+              return (
+                <Box key={childIssue.id} marginBottom={0}>
                   <Text color={statusColors[childIssue.status] || "white"}>
                     • {childIssue.title}
                   </Text>
                 </Box>
-              ) : null;
+              );
             })}
-            {issue.childIds.length > 10 && (
-              <Text color="gray">... and {issue.childIds.length - 10} more</Text>
+            {children.length > 10 && (
+              <Text color="gray">... and {children.length - 10} more</Text>
             )}
           </Box>
         </Box>

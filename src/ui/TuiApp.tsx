@@ -65,7 +65,7 @@ export const TuiApp: React.FC = () => {
   
   // Filter issues based on current navigation state
   const displayIssues = useMemo(() => {
-    if (!currentNavState?.rootIssueId) {
+    if (currentNavState?.rootIssueId === null || currentNavState?.rootIssueId === undefined) {
       // Show root issues
       return issues.filter((issue: Issue) => !issue.parentId && issue.status !== "archived");
     } else {
