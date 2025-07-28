@@ -11,9 +11,10 @@ import { ConfirmDialog } from "./ConfirmDialog.tsx";
 import { ChildSelectorDialog } from "./ChildSelectorDialog.tsx";
 import { NavigationStackImpl } from "./navigation-stack.ts";
 import { Breadcrumb } from "./Breadcrumb.tsx";
+import { IssueDetailView } from "./IssueDetailView.tsx";
 
 type ViewMode = "kanban" | "dependency";
-type AppMode = "view" | "create" | "edit" | "confirm-delete" | "select-children";
+type AppMode = "view" | "create" | "edit" | "confirm-delete" | "select-children" | "detail";
 
 interface ActionItem {
   key: string;
@@ -121,6 +122,12 @@ export const TuiApp: React.FC = () => {
         enabled: true,
       },
       {
+        key: "s",
+        label: "S(show)",
+        description: "Show full details",
+        enabled: selectedIssue !== null && appMode === "view",
+      },
+      {
         key: "r",
         label: "R(reload)",
         description: "Reload issues",
@@ -163,6 +170,11 @@ export const TuiApp: React.FC = () => {
       case "v":
         setViewMode(viewMode === "kanban" ? "dependency" : "kanban");
         break;
+      case "s":
+        if (selectedIssue) {
+          setAppMode("detail");
+        }
+        break;
       case "r":
         loadIssues();
         break;
@@ -194,7 +206,7 @@ export const TuiApp: React.FC = () => {
     updates: Partial<Issue>
   ) => {
     try {
-      // TODO: Implement issue update in IssueService
+      await issueService.updateIssue(issueId, updates);
       await loadIssues();
       setAppMode("view");
     } catch (err) {
@@ -353,6 +365,14 @@ export const TuiApp: React.FC = () => {
               .map((issue: Issue) => issue.id)}
             onConfirm={handleSetChildren}
             onCancel={() => setAppMode("view")}
+          />
+        )}
+
+        {appMode === "detail" && selectedIssue && (
+          <IssueDetailView
+            issue={selectedIssue}
+            allIssues={issues}
+            onClose={() => setAppMode("view")}
           />
         )}
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Text } from "ink";
 import { Issue } from "../types/issue.ts";
-import { ProgressCalculator, IssueProgress } from "../domain/progress-calculator.ts";
+import { ProgressCalculator } from "../domain/progress-calculator.ts";
 
 interface IssuePreviewProps {
   issue: Issue | null;
@@ -37,10 +37,9 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
   }
 
   const progressCalculator = new ProgressCalculator(allIssues);
-  const children = allIssues.filter(i => i.parentId === issue.id);
-  const progress = children.length > 0
-    ? progressCalculator.calculateProgress(issue.id)
-    : null;
+  const children = allIssues.filter((i) => i.parentId === issue.id);
+  const progress =
+    children.length > 0 ? progressCalculator.calculateProgress(issue.id) : null;
 
   return (
     <Box
@@ -53,11 +52,15 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
       overflow="hidden"
     >
       <Box marginBottom={1}>
-        <Text bold color="cyan">Issue Preview</Text>
+        <Text bold color="cyan">
+          Issue Preview
+        </Text>
       </Box>
 
       <Box marginBottom={1}>
-        <Text bold wrap="wrap">{issue.title}</Text>
+        <Text bold wrap="wrap">
+          {issue.title}
+        </Text>
       </Box>
 
       <Box marginBottom={1}>
@@ -96,28 +99,6 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
         </Box>
       )}
 
-      {issue.description && (
-        <Box flexDirection="column" marginTop={1}>
-          <Text color="gray">Description:</Text>
-          <Box marginTop={1} flexShrink={1}>
-            <Text wrap="wrap">
-              {(() => {
-                const lines = issue.description.split('\n');
-                const maxLines = 5;
-                const maxChars = 200;
-                
-                if (lines.length > maxLines) {
-                  return lines.slice(0, maxLines).join('\n') + '\n...';
-                } else if (issue.description.length > maxChars) {
-                  return issue.description.substring(0, maxChars) + '...';
-                }
-                return issue.description;
-              })()}
-            </Text>
-          </Box>
-        </Box>
-      )}
-
       {children.length > 0 && (
         <Box flexDirection="column" marginTop={1}>
           <Text color="gray">Children ({children.length}):</Text>
@@ -149,6 +130,24 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
         <Box marginTop={1}>
           <Text color="gray">Created: </Text>
           <Text>{new Date(issue.createdAt).toLocaleString()}</Text>
+        </Box>
+      )}
+
+      {issue.description && (
+        <Box flexDirection="column" marginTop={1}>
+          <Text color="gray">Description:</Text>
+          <Box marginTop={1}>
+            <Text wrap="wrap">
+              {(() => {
+                const lines = issue.description.split("\n");
+                const maxLines = 20; // 少し増やして、より多くの情報を表示
+                if (lines.length > maxLines) {
+                  return lines.slice(0, maxLines).join("\n") + "\n...";
+                }
+                return issue.description;
+              })()}
+            </Text>
+          </Box>
         </Box>
       )}
     </Box>
