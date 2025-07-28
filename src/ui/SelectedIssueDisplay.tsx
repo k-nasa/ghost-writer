@@ -14,8 +14,7 @@ export const SelectedIssueDisplay = memo(({ selectedIssue }: SelectedIssueDispla
 
   return (
     <Box marginTop={1} paddingX={1}>
-      <Text bold>Selected: </Text>
-      <Text>{selectedIssue.title}</Text>
+      <Text bold>{selectedIssue.title}</Text>
       {selectedIssue.description && (
         <Text color="gray"> - {selectedIssue.description}</Text>
       )}

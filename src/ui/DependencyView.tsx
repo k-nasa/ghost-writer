@@ -125,8 +125,7 @@ export const DependencyView: React.FC<DependencyViewProps> = ({
 
       {selectedIssue && (
         <Box borderStyle="single" borderColor="gray" paddingX={1} marginTop={1}>
-          <Text bold>Selected: </Text>
-          <Text>{selectedIssue.title}</Text>
+          <Text bold>{selectedIssue.title}</Text>
           {selectedIssue.description && (
             <Text color="gray"> - {selectedIssue.description}</Text>
           )}

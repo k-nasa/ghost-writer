@@ -69,7 +69,7 @@ const IssueCard = ({
       paddingX={1}
       marginBottom={1}
     >
-      <Text color={getTextColor()} wrap="truncate">
+      <Text color={getTextColor()} wrap="wrap">
         {issue.title}
         {progress && progress.total > 0 && (
           <Text

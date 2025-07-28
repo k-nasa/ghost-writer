@@ -382,23 +382,6 @@ export const TuiApp: React.FC = () => {
         )}
       </Box>
 
-      {/* Help text */}
-      <Box
-        flexDirection="column"
-        borderStyle="single"
-        borderColor="gray"
-        paddingX={1}
-        marginTop={1}
-      >
-        <Text color="gray">
-          Navigation: ↑↓←→/hjkl | Status: m=move mode | Actions: {viewMode === "kanban" ? "Enter=select & move" : "Enter=toggle expand"}
-        </Text>
-        {selectedIssue && (
-          <Text color="cyan" wrap="truncate">
-            Selected: {selectedIssue.title} [{selectedIssue.status}]
-          </Text>
-        )}
-      </Box>
 
       {/* Action bar */}
       <Box
