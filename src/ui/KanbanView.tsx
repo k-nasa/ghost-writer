@@ -7,10 +7,13 @@ import { IssuePreview } from "./IssuePreview.tsx";
 interface KanbanViewProps {
   issues: Issue[];
   allIssues?: Issue[]; // For progress calculation
+  rootIssueId?: string | null; // null means showing root issues
   onSelectIssue: (issue: Issue | null) => void;
   onStatusChange: (issueId: string, newStatus: IssueStatus) => void;
   initialCursorPosition?: { column: number; row: number };
   onCursorPositionChange?: (position: { column: number; row: number }) => void;
+  onDrillDown?: (issue: Issue) => void; // Called when Enter is pressed on an issue with children
+  onGoBack?: () => void; // Called when ESC is pressed
 }
 
 const statusColors: Record<string, string> = {
@@ -113,10 +116,13 @@ const ColumnHeader = ({
 export const KanbanView: React.FC<KanbanViewProps> = ({
   issues,
   allIssues,
+  rootIssueId,
   onSelectIssue,
   onStatusChange,
   initialCursorPosition,
   onCursorPositionChange,
+  onDrillDown,
+  onGoBack,
 }: KanbanViewProps) => {
   const statuses: IssueStatus[] = [
     "plan",
@@ -223,12 +229,19 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
         }
       } else if (key.return) {
         if (currentHighlightedIssue) {
-          // Update status if it's different
-          const targetStatus = statuses[selectedColumn];
-          if (currentHighlightedIssue.status !== targetStatus) {
-            onStatusChange(currentHighlightedIssue.id, targetStatus);
+          // Check if issue has children and drill down is available
+          if (currentHighlightedIssue.childIds && currentHighlightedIssue.childIds.length > 0 && onDrillDown) {
+            onDrillDown(currentHighlightedIssue);
+          } else {
+            // Update status if it's different
+            const targetStatus = statuses[selectedColumn];
+            if (currentHighlightedIssue.status !== targetStatus) {
+              onStatusChange(currentHighlightedIssue.id, targetStatus);
+            }
           }
         }
+      } else if (key.escape && onGoBack) {
+        onGoBack();
       } else if (input === "m") {
         // Enter moving mode
         if (currentHighlightedIssue) {
@@ -247,13 +260,20 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
         <Box marginBottom={1}>
           <Text bold color="green">
             Kanban Board
+            {rootIssueId && allIssues && (() => {
+              const rootIssue = allIssues.find(i => i.id === rootIssueId);
+              return rootIssue ? ` - ${rootIssue.title}` : "";
+            })()}
           </Text>
           <Text color="gray">
             {" "}
             {isMovingMode
               ? "(h/l: move, Enter: confirm, ESC: cancel)"
-              : "(arrows/hjkl: navigate, m: move status)"}
+              : "(arrows/hjkl: navigate, m: move status, Enter: drill down)"}
           </Text>
+          {onGoBack && (
+            <Text color="gray"> | ESC: go back</Text>
+          )}
         </Box>
         {isMovingMode && movingIssue && (
           <Box marginBottom={1}>

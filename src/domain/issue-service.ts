@@ -271,4 +271,108 @@ export class IssueService {
       archivedAt: new Date()
     });
   }
+
+  async setChildren(parentId: string, childIds: string[]): Promise<void> {
+    const storage = await getStorage();
+    
+    // Validate parent exists
+    const parent = await storage.getIssue(parentId);
+    if (!parent) {
+      throw new IssueNotFoundError(parentId);
+    }
+
+    // Get all current children
+    const currentChildren = await this.getChildren(parentId);
+    const currentChildIds = currentChildren.map(c => c.id);
+
+    // Determine which children to add and remove
+    const toAdd = childIds.filter(id => !currentChildIds.includes(id));
+    const toRemove = currentChildIds.filter(id => !childIds.includes(id));
+
+    // Validate all new children exist and check for circular dependencies
+    for (const childId of toAdd) {
+      const child = await storage.getIssue(childId);
+      if (!child) {
+        throw new IssueNotFoundError(childId);
+      }
+
+      // Check if making this a child would create a circular hierarchy
+      if (await this.wouldCreateCircularHierarchy(parentId, childId)) {
+        throw new CircularDependencyError(parentId, childId);
+      }
+
+      // Check hierarchy depth
+      const depth = await this.calculateHierarchyDepth(parentId);
+      const childDepth = await this.calculateMaxChildDepth(childId);
+      if (depth + childDepth + 1 > 4) {
+        throw new MaxDepthExceededError(childId);
+      }
+    }
+
+    // Update parent's childIds
+    await storage.updateIssue(parentId, { 
+      childIds: childIds,
+      updatedAt: new Date()
+    });
+
+    // Remove parentId from children that are being removed
+    for (const childId of toRemove) {
+      await storage.updateIssue(childId, { 
+        parentId: undefined,
+        updatedAt: new Date()
+      });
+    }
+
+    // Add parentId to children that are being added
+    for (const childId of toAdd) {
+      await storage.updateIssue(childId, { 
+        parentId: parentId,
+        updatedAt: new Date()
+      });
+    }
+  }
+
+  private async wouldCreateCircularHierarchy(parentId: string, childId: string): Promise<boolean> {
+    // Check if childId is an ancestor of parentId
+    const storage = await getStorage();
+    let currentId: string | undefined = parentId;
+    
+    while (currentId) {
+      if (currentId === childId) {
+        return true;
+      }
+      const current = await storage.getIssue(currentId);
+      currentId = current?.parentId;
+    }
+    
+    return false;
+  }
+
+  private async calculateHierarchyDepth(issueId: string): Promise<number> {
+    const storage = await getStorage();
+    let depth = 0;
+    let currentId: string | undefined = issueId;
+    
+    while (currentId) {
+      const current = await storage.getIssue(currentId);
+      if (!current?.parentId) break;
+      currentId = current.parentId;
+      depth++;
+    }
+    
+    return depth;
+  }
+
+  private async calculateMaxChildDepth(issueId: string): Promise<number> {
+    const children = await this.getChildren(issueId);
+    if (children.length === 0) return 0;
+    
+    let maxDepth = 0;
+    for (const child of children) {
+      const childDepth = await this.calculateMaxChildDepth(child.id);
+      maxDepth = Math.max(maxDepth, childDepth + 1);
+    }
+    
+    return maxDepth;
+  }
 }

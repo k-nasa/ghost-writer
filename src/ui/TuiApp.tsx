@@ -8,9 +8,12 @@ import { IssueForm } from "./IssueForm.tsx";
 import { IssueEditForm } from "./IssueEditForm.tsx";
 import { initDebugLog } from "./debug-logger.ts";
 import { ConfirmDialog } from "./ConfirmDialog.tsx";
+import { ChildSelectorDialog } from "./ChildSelectorDialog.tsx";
+import { NavigationStackImpl } from "./navigation-stack.ts";
+import { Breadcrumb } from "./Breadcrumb.tsx";
 
 type ViewMode = "kanban" | "dependency";
-type AppMode = "view" | "create" | "edit" | "confirm-delete";
+type AppMode = "view" | "create" | "edit" | "confirm-delete" | "select-children";
 
 interface ActionItem {
   key: string;
@@ -27,6 +30,7 @@ export const TuiApp: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [kanbanCursorPosition, setKanbanCursorPosition] = useState({ column: 0, row: 0 });
+  const [navigationStack] = useState(() => new NavigationStackImpl([]));
 
   // デバッグログを初期化
   useEffect(() => {
@@ -44,6 +48,7 @@ export const TuiApp: React.FC = () => {
       setError(null);
       const loadedIssues = await issueService.getIssues();
       setIssues(loadedIssues);
+      navigationStack.updateIssues(loadedIssues);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load issues");
     } finally {
@@ -55,10 +60,21 @@ export const TuiApp: React.FC = () => {
     loadIssues();
   }, []);
 
-  // Filter to show only root issues (no parent) and not archived
-  const rootIssues = useMemo(() => {
-    return issues.filter((issue: Issue) => !issue.parentId && issue.status !== "archived");
-  }, [issues]);
+  // Get current navigation state
+  const currentNavState = navigationStack.current();
+  
+  // Filter issues based on current navigation state
+  const displayIssues = useMemo(() => {
+    if (!currentNavState?.rootIssueId) {
+      // Show root issues
+      return issues.filter((issue: Issue) => !issue.parentId && issue.status !== "archived");
+    } else {
+      // Show children of the current root issue
+      return issues.filter((issue: Issue) => 
+        issue.parentId === currentNavState.rootIssueId && issue.status !== "archived"
+      );
+    }
+  }, [issues, currentNavState]);
 
 
   // Define actions
@@ -90,6 +106,12 @@ export const TuiApp: React.FC = () => {
         label: "C(create)",
         description: "Create issue",
         enabled: true,
+      },
+      {
+        key: "p",
+        label: "P(parent)",
+        description: "Set children",
+        enabled: selectedIssue !== null && appMode === "view",
       },
       {
         key: "v",
@@ -131,6 +153,11 @@ export const TuiApp: React.FC = () => {
       case "e":
         if (selectedIssue) {
           setAppMode("edit");
+        }
+        break;
+      case "p":
+        if (selectedIssue) {
+          setAppMode("select-children");
         }
         break;
       case "v":
@@ -226,6 +253,51 @@ export const TuiApp: React.FC = () => {
     }
   };
 
+  // Handle setting children for an issue
+  const handleSetChildren = async (childIds: string[]) => {
+    if (!selectedIssue) return;
+
+    try {
+      await issueService.setChildren(selectedIssue.id, childIds);
+      setAppMode("view");
+      await loadIssues();
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update children");
+      setAppMode("view");
+    }
+  };
+
+  // Handle drill down into an issue
+  const handleDrillDown = (issue: Issue) => {
+    // Save current cursor position
+    if (currentNavState) {
+      currentNavState.cursorPosition = kanbanCursorPosition;
+    }
+    
+    // Push new state to navigation stack
+    navigationStack.push({
+      rootIssueId: issue.id,
+      cursorPosition: { column: 0, row: 0 }
+    });
+    
+    // Reset cursor position for new view
+    setKanbanCursorPosition({ column: 0, row: 0 });
+    
+    // Force re-render
+    setError(null);
+  };
+
+  // Handle going back
+  const handleGoBack = () => {
+    const previousState = navigationStack.pop();
+    if (previousState && navigationStack.current()) {
+      // Restore cursor position
+      setKanbanCursorPosition(navigationStack.current()!.cursorPosition);
+      setError(null);
+    }
+  };
+
   const actionBarHeight = 3;
 
   if (loading) {
@@ -272,20 +344,36 @@ export const TuiApp: React.FC = () => {
           />
         )}
 
+        {appMode === "select-children" && selectedIssue && (
+          <ChildSelectorDialog
+            parentIssue={selectedIssue}
+            availableIssues={issues.filter((issue: Issue) => issue.status !== "archived")}
+            currentChildIds={issues
+              .filter((issue: Issue) => issue.parentId === selectedIssue.id)
+              .map((issue: Issue) => issue.id)}
+            onConfirm={handleSetChildren}
+            onCancel={() => setAppMode("view")}
+          />
+        )}
+
         {appMode === "view" && (
           <>
+            <Breadcrumb items={navigationStack.getBreadcrumbs()} />
             {viewMode === "kanban" ? (
               <KanbanView
-                issues={rootIssues}
+                issues={displayIssues}
                 allIssues={issues}
+                rootIssueId={currentNavState?.rootIssueId}
                 onSelectIssue={handleSelectIssue}
                 onStatusChange={handleStatusChange}
                 initialCursorPosition={kanbanCursorPosition}
                 onCursorPositionChange={setKanbanCursorPosition}
+                onDrillDown={handleDrillDown}
+                onGoBack={navigationStack.canGoBack() ? handleGoBack : undefined}
               />
             ) : (
               <DependencyView
-                issues={rootIssues}
+                issues={displayIssues}
                 onSelectIssue={handleSelectIssue}
                 selectedIssue={selectedIssue}
               />
