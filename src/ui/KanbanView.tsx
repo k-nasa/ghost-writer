@@ -329,7 +329,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       </Box>
 
       {/* Preview panel (30%) */}
-      <Box width="30%" flexDirection="column">
+      <Box width="30%" flexDirection="column" flexShrink={0}>
         <IssuePreview
           issue={currentHighlightedIssue}
           allIssues={allIssues || issues}

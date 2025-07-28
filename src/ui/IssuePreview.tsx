@@ -50,6 +50,7 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
       paddingY={1}
       flexDirection="column"
       height="100%"
+      overflow="hidden"
     >
       <Box marginBottom={1}>
         <Text bold color="cyan">Issue Preview</Text>
@@ -98,8 +99,21 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
       {issue.description && (
         <Box flexDirection="column" marginTop={1}>
           <Text color="gray">Description:</Text>
-          <Box marginTop={1}>
-            <Text wrap="wrap">{issue.description}</Text>
+          <Box marginTop={1} flexShrink={1}>
+            <Text wrap="wrap">
+              {(() => {
+                const lines = issue.description.split('\n');
+                const maxLines = 5;
+                const maxChars = 200;
+                
+                if (lines.length > maxLines) {
+                  return lines.slice(0, maxLines).join('\n') + '\n...';
+                } else if (issue.description.length > maxChars) {
+                  return issue.description.substring(0, maxChars) + '...';
+                }
+                return issue.description;
+              })()}
+            </Text>
           </Box>
         </Box>
       )}
