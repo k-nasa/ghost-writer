@@ -1,0 +1,15 @@
+# Deno
+/ghost
+.ghost/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
