@@ -3,7 +3,6 @@ import { Box, Text, useApp, useInput } from "ink";
 import { Issue, IssueStatus } from "../types/issue.ts";
 import { IssueService } from "../domain/issue-service.ts";
 import { KanbanView } from "./KanbanView.tsx";
-import { DependencyView } from "./DependencyView.tsx";
 import { IssueForm } from "./IssueForm.tsx";
 import { IssueEditForm } from "./IssueEditForm.tsx";
 import { initDebugLog } from "./debug-logger.ts";
@@ -13,7 +12,6 @@ import { NavigationStackImpl } from "./navigation-stack.ts";
 import { Breadcrumb } from "./Breadcrumb.tsx";
 import { IssueDetailView } from "./IssueDetailView.tsx";
 
-type ViewMode = "kanban" | "dependency";
 type AppMode = "view" | "create" | "edit" | "confirm-delete" | "select-children" | "detail";
 
 interface ActionItem {
@@ -25,7 +23,6 @@ interface ActionItem {
 
 export const TuiApp: React.FC = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
-  const [viewMode, setViewMode] = useState<ViewMode>("kanban");
   const [appMode, setAppMode] = useState<AppMode>("view");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,15 +79,6 @@ export const TuiApp: React.FC = () => {
   const actions: ActionItem[] = useMemo(
     () => [
       {
-        key: "a",
-        label: "A(approve)",
-        description: "Approve issue",
-        enabled:
-          selectedIssue !== null &&
-          selectedIssue.status === "plan" &&
-          appMode === "view",
-      },
-      {
         key: "d",
         label: "D(delete)",
         description: "Archive issue",
@@ -115,13 +103,6 @@ export const TuiApp: React.FC = () => {
         enabled: selectedIssue !== null && appMode === "view",
       },
       {
-        key: "v",
-        label: "V(view)",
-        description:
-          viewMode === "kanban" ? "Show dependencies" : "Show kanban",
-        enabled: true,
-      },
-      {
         key: "s",
         label: "S(show)",
         description: "Show full details",
@@ -135,7 +116,7 @@ export const TuiApp: React.FC = () => {
       },
       { key: "q", label: "Q(quit)", description: "Exit", enabled: true },
     ],
-    [selectedIssue, appMode, viewMode]
+    [selectedIssue, appMode]
   );
 
   // Handle global key input
@@ -146,11 +127,6 @@ export const TuiApp: React.FC = () => {
     switch (input.toLowerCase()) {
       case "c":
         setAppMode("create");
-        break;
-      case "a":
-        if (selectedIssue && selectedIssue.status === "plan") {
-          handleApproveIssue(selectedIssue.id);
-        }
         break;
       case "d":
         if (selectedIssue) {
@@ -166,9 +142,6 @@ export const TuiApp: React.FC = () => {
         if (selectedIssue) {
           setAppMode("select-children");
         }
-        break;
-      case "v":
-        setViewMode(viewMode === "kanban" ? "dependency" : "kanban");
         break;
       case "s":
         if (selectedIssue) {
@@ -228,16 +201,6 @@ export const TuiApp: React.FC = () => {
     }
   };
 
-  // Handle issue approval
-  const handleApproveIssue = async (issueId: string) => {
-    try {
-      await issueService.approveIssue(issueId);
-      await loadIssues();
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to approve issue");
-    }
-  };
 
   const handleSelectIssue = (issue: Issue | null) => {
     setSelectedIssue(issue);
@@ -379,25 +342,17 @@ export const TuiApp: React.FC = () => {
         {appMode === "view" && (
           <>
             <Breadcrumb items={navigationStack.getBreadcrumbs()} />
-            {viewMode === "kanban" ? (
-              <KanbanView
-                issues={displayIssues}
-                allIssues={issues}
-                rootIssueId={currentNavState?.rootIssueId}
-                onSelectIssue={handleSelectIssue}
-                onStatusChange={handleStatusChange}
-                initialCursorPosition={kanbanCursorPosition}
-                onCursorPositionChange={setKanbanCursorPosition}
-                onDrillDown={handleDrillDown}
-                onGoBack={navigationStack.canGoBack() ? handleGoBack : undefined}
-              />
-            ) : (
-              <DependencyView
-                issues={displayIssues}
-                onSelectIssue={handleSelectIssue}
-                selectedIssue={selectedIssue}
-              />
-            )}
+            <KanbanView
+              issues={displayIssues}
+              allIssues={issues}
+              rootIssueId={currentNavState?.rootIssueId}
+              onSelectIssue={handleSelectIssue}
+              onStatusChange={handleStatusChange}
+              initialCursorPosition={kanbanCursorPosition}
+              onCursorPositionChange={setKanbanCursorPosition}
+              onDrillDown={handleDrillDown}
+              onGoBack={navigationStack.canGoBack() ? handleGoBack : undefined}
+            />
           </>
         )}
       </Box>
