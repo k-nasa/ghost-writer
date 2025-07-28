@@ -1,0 +1,43 @@
+{
+  "name": "@ghost-writer/cli",
+  "version": "0.1.0",
+  "tasks": {
+    "dev": "deno run --allow-read --allow-write --allow-run --allow-env src/main.ts",
+    "build": "deno compile --allow-read --allow-write --allow-run --allow-env --output=ghost src/main.ts",
+    "test": "deno test --allow-read --allow-write --allow-env",
+    "fmt": "deno fmt",
+    "lint": "deno lint",
+    "typecheck": "deno check src/**/*.ts"
+  },
+  "imports": {
+    "@std/fs": "jsr:@std/fs@^1.0.0",
+    "@std/path": "jsr:@std/path@^1.0.0",
+    "@std/fmt": "jsr:@std/fmt@^1.0.0",
+    "@std/assert": "jsr:@std/assert@^1.0.0",
+    "@std/testing": "jsr:@std/testing@^1.0.0",
+    "yargs": "npm:yargs@^17.7.2",
+    "@types/yargs": "npm:@types/yargs@^17.0.32",
+    "ink": "npm:ink@^4.4.1",
+    "ink-text-input": "npm:ink-text-input@^5.0.1",
+    "react": "npm:react@^18.2.0",
+    "@types/react": "npm:@types/react@^18.2.0"
+  },
+  "compilerOptions": {
+    "jsx": "react",
+    "jsxFactory": "React.createElement",
+    "jsxFragmentFactory": "React.Fragment"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  }
+}

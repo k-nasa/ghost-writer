@@ -1,0 +1,199 @@
+import React, { useState, useMemo, memo } from "react";
+import { Box, Text, useInput } from "ink";
+import { Issue, IssueStatus } from "../types/issue.ts";
+import { ProgressCalculator } from "../domain/progress-calculator.ts";
+
+interface KanbanViewProps {
+  issues: Issue[];
+  onSelectIssue: (issue: Issue | null) => void;
+  onStatusChange: (issueId: string, newStatus: IssueStatus) => void;
+  selectedIssue: Issue | null;
+}
+
+const statusColors: Record<string, string> = {
+  plan: "gray",
+  backlog: "yellow",
+  in_progress: "blue",
+  done: "green",
+  cancelled: "red",
+};
+
+const statusLabels: Record<IssueStatus, string> = {
+  plan: "PLAN",
+  backlog: "BACKLOG",
+  in_progress: "IN PROGRESS",
+  done: "DONE",
+  cancelled: "CANCELLED",
+};
+
+// Memoized issue card component to prevent unnecessary re-renders
+const IssueCard = memo(({ issue, isSelected, progress }: { 
+  issue: Issue; 
+  isSelected: boolean;
+  progress?: { completed: number; total: number; percentage: number };
+}) => (
+  <Box
+    borderStyle={isSelected ? "single" : undefined}
+    borderColor={isSelected ? "cyan" : undefined}
+    paddingX={1}
+    marginBottom={1}
+  >
+    <Text
+      color={isSelected ? "cyan" : "white"}
+      wrap="truncate"
+    >
+      {issue.title}
+      {progress && progress.total > 0 && (
+        <Text color={progress.percentage === 100 ? "green" : progress.percentage > 0 ? "yellow" : "gray"}>
+          {" "}({progress.completed}/{progress.total})
+        </Text>
+      )}
+    </Text>
+  </Box>
+));
+
+// Memoized column component to prevent unnecessary re-renders
+const KanbanColumn = memo(({
+  status,
+  columnIssues,
+  isSelectedColumn,
+  selectedRow,
+  progressCalculator,
+}: {
+  status: IssueStatus;
+  columnIssues: Issue[];
+  isSelectedColumn: boolean;
+  selectedRow: number;
+  progressCalculator: ProgressCalculator;
+}) => (
+  <Box
+    flexDirection="column"
+    width="20%"
+    paddingRight={1}
+  >
+    <Box
+      borderStyle="single"
+      borderColor={isSelectedColumn ? "green" : "gray"}
+      paddingX={1}
+      marginBottom={1}
+    >
+      <Text
+        bold
+        color={statusColors[status]}
+      >
+        {statusLabels[status]} ({columnIssues.length})
+      </Text>
+    </Box>
+
+    <Box flexDirection="column" flexGrow={1}>
+      {columnIssues.map((issue, rowIndex) => {
+        const progress = issue.childIds.length > 0 
+          ? progressCalculator.calculateProgress(issue.id)
+          : undefined;
+        
+        return (
+          <IssueCard
+            key={issue.id}
+            issue={issue}
+            isSelected={isSelectedColumn && selectedRow === rowIndex}
+            progress={progress}
+          />
+        );
+      })}
+    </Box>
+  </Box>
+));
+
+export const KanbanView: React.FC<KanbanViewProps> = memo(({
+  issues,
+  onSelectIssue,
+  onStatusChange,
+  selectedIssue,
+}: KanbanViewProps) => {
+  const [selectedColumn, setSelectedColumn] = useState(0);
+  const [selectedRow, setSelectedRow] = useState(0);
+  const statuses: IssueStatus[] = ["plan", "backlog", "in_progress", "done", "cancelled"];
+  
+  // Memoize issue grouping to prevent recalculation on every render
+  const issuesByStatus = useMemo(() => 
+    statuses.reduce((acc, status) => {
+      acc[status] = issues.filter((issue: Issue) => issue.status === status);
+      return acc;
+    }, {} as Record<IssueStatus, Issue[]>)
+  , [issues]);
+
+  const currentColumnIssues = issuesByStatus[statuses[selectedColumn]];
+
+  // Create progress calculator with memoization
+  const progressCalculator = useMemo(() => 
+    new ProgressCalculator(issues),
+    [issues]
+  );
+
+  useInput((input, key) => {
+    // Arrow keys
+    if (key.leftArrow || input === "h") {
+      setSelectedColumn(Math.max(0, selectedColumn - 1));
+      setSelectedRow(0);
+    } else if (key.rightArrow || input === "l") {
+      setSelectedColumn(Math.min(statuses.length - 1, selectedColumn + 1));
+      setSelectedRow(0);
+    } else if (key.upArrow || input === "k") {
+      setSelectedRow(Math.max(0, selectedRow - 1));
+    } else if (key.downArrow || input === "j") {
+      setSelectedRow(Math.min(currentColumnIssues.length - 1, selectedRow + 1));
+    } else if (key.return) {
+      if (currentColumnIssues[selectedRow]) {
+        onSelectIssue(currentColumnIssues[selectedRow]);
+      }
+    } else if (input === " " && currentColumnIssues[selectedRow]) {
+      // Space to move to next status
+      const issue = currentColumnIssues[selectedRow];
+      const currentStatusIndex = statuses.indexOf(issue.status);
+      if (currentStatusIndex < statuses.length - 1) {
+        const nextStatus = statuses[currentStatusIndex + 1];
+        onStatusChange(issue.id, nextStatus);
+      }
+    }
+
+    // Update selected issue
+    if (currentColumnIssues[selectedRow]) {
+      onSelectIssue(currentColumnIssues[selectedRow]);
+    } else {
+      onSelectIssue(null);
+    }
+  });
+
+
+  return (
+    <Box flexDirection="column" flexGrow={1}>
+      <Box marginBottom={1}>
+        <Text bold color="green">Kanban Board</Text>
+        <Text color="gray"> (Use arrows/hjkl to navigate, Enter to select, Space to move to next status)</Text>
+      </Box>
+
+      <Box flexGrow={1}>
+        {statuses.map((status, colIndex) => (
+          <KanbanColumn
+            key={status}
+            status={status}
+            columnIssues={issuesByStatus[status]}
+            isSelectedColumn={selectedColumn === colIndex}
+            selectedRow={selectedRow}
+            progressCalculator={progressCalculator}
+          />
+        ))}
+      </Box>
+
+      {selectedIssue && (
+        <Box borderStyle="single" borderColor="gray" paddingX={1} marginTop={1}>
+          <Text bold>Selected: </Text>
+          <Text>{selectedIssue.title}</Text>
+          {selectedIssue.description && (
+            <Text color="gray"> - {selectedIssue.description}</Text>
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+});
