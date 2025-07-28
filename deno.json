@@ -21,7 +21,8 @@
     "ink": "npm:ink@^4.4.1",
     "ink-text-input": "npm:ink-text-input@^5.0.1",
     "react": "npm:react@^18.2.0",
-    "@types/react": "npm:@types/react@^18.2.0"
+    "@types/react": "npm:@types/react@^18.2.0",
+    "ink-testing-library": "npm:ink-testing-library@^3.0.0"
   },
   "compilerOptions": {
     "jsx": "react",
