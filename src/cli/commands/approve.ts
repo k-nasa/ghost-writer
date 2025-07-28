@@ -8,7 +8,7 @@ interface ApproveArguments {
 
 export const approveCommand: CommandModule<{}, ApproveArguments> = {
   command: "approve <issueId>",
-  describe: "Approve an issue (move from plan to backlog)",
+  describe: "Approve an issue (move from plan to backlog) - Note: All status transitions are now allowed without approval",
   builder: (yargs: Argv) => {
     return yargs.positional("issueId", {
       describe: "Issue ID to approve",

@@ -24,12 +24,12 @@ export interface IssueTree extends Issue {
 }
 
 export const ISSUE_STATUS_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
-  plan: ["backlog", "archived"],
-  backlog: ["in_progress", "archived"],
-  in_progress: ["in_review", "done", "archived"],
-  in_review: ["in_progress", "done", "archived"],
-  done: ["archived"],
-  archived: [],
+  plan: ["backlog", "in_progress", "in_review", "done", "archived"],
+  backlog: ["plan", "in_progress", "in_review", "done", "archived"],
+  in_progress: ["plan", "backlog", "in_review", "done", "archived"],
+  in_review: ["plan", "backlog", "in_progress", "done", "archived"],
+  done: ["plan", "backlog", "in_progress", "in_review", "archived"],
+  archived: ["plan", "backlog", "in_progress", "in_review", "done"],
 };
 
 export function canTransitionTo(
