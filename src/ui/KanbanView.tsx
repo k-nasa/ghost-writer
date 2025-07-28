@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Text, useInput } from "ink";
 import { Issue, IssueStatus } from "../types/issue.ts";
-import { ProgressCalculator } from "../domain/progress-calculator.ts";
+import { ProgressCalculator, IssueProgress } from "../domain/progress-calculator.ts";
 
 interface KanbanViewProps {
   issues: Issue[];
@@ -33,7 +33,7 @@ const IssueCard = ({
 }: {
   issue: Issue;
   isSelected: boolean;
-  progress?: { completed: number; total: number; percentage: number };
+  progress?: IssueProgress;
 }) => {
   return (
     <Box
@@ -107,6 +107,14 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   }, {} as Record<IssueStatus, Issue[]>);
 
   const currentColumnIssues = issuesByStatus[statuses[selectedColumn]];
+  const currentHighlightedIssue = currentColumnIssues[selectedRow] || null;
+
+  // Update selected issue when cursor moves
+  React.useEffect(() => {
+    if (currentHighlightedIssue) {
+      onSelectIssue(currentHighlightedIssue);
+    }
+  }, [selectedColumn, selectedRow, currentHighlightedIssue?.id]);
 
   // Progress calculator
   const progressCalculator = new ProgressCalculator(issues);
@@ -142,18 +150,11 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       }
     } else if (key.return) {
       if (currentHighlightedIssue) {
-        onSelectIssue(currentHighlightedIssue);
-
-        // Also update status if it's different
+        // Update status if it's different
         const targetStatus = statuses[selectedColumn];
         if (currentHighlightedIssue.status !== targetStatus) {
           onStatusChange(currentHighlightedIssue.id, targetStatus);
         }
-      }
-    } else if (input === " ") {
-      // Space key to just select without changing status
-      if (currentHighlightedIssue) {
-        onSelectIssue(currentHighlightedIssue);
       }
     }
   });
@@ -191,12 +192,13 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
 
               <Box flexDirection="column" flexGrow={1}>
                 {columnIssues.map((issue: Issue, rowIndex: number) => (
-                  <IssueCard
-                    key={issue.id}
-                    issue={issue}
-                    isSelected={isSelectedColumn && selectedRow === rowIndex}
-                    progress={getProgress(issue)}
-                  />
+                  <React.Fragment key={issue.id}>
+                    <IssueCard
+                      issue={issue}
+                      isSelected={isSelectedColumn && selectedRow === rowIndex}
+                      progress={getProgress(issue)}
+                    />
+                  </React.Fragment>
                 ))}
               </Box>
             </Box>

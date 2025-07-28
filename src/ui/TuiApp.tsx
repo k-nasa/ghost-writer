@@ -8,7 +8,6 @@ import { IssueForm } from "./IssueForm.tsx";
 import { IssueEditForm } from "./IssueEditForm.tsx";
 import { IssueDetailView } from "./IssueDetailView.tsx";
 import { initDebugLog } from "./debug-logger.ts";
-import { SelectedIssueDisplay } from "./SelectedIssueDisplay.tsx";
 
 type ViewMode = "kanban" | "dependency";
 type AppMode = "view" | "create" | "edit" | "detail";
@@ -250,14 +249,11 @@ export const TuiApp: React.FC = () => {
         {appMode === "view" && (
           <>
             {viewMode === "kanban" ? (
-              <>
-                <KanbanView
-                  issues={issues}
-                  onSelectIssue={handleSelectIssue}
-                  onStatusChange={handleStatusChange}
-                />
-                <SelectedIssueDisplay selectedIssue={selectedIssue} />
-              </>
+              <KanbanView
+                issues={issues}
+                onSelectIssue={handleSelectIssue}
+                onStatusChange={handleStatusChange}
+              />
             ) : (
               <DependencyView
                 issues={issues}

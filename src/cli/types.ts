@@ -36,3 +36,8 @@ export interface StatusArguments extends BaseArguments {
 export interface AvailableArguments extends BaseArguments {
   format?: string;
 }
+
+export interface ShowArguments extends BaseArguments {
+  issueId: string;
+  json?: boolean;
+}

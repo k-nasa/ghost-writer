@@ -1,6 +1,7 @@
 {
   "name": "@ghost-writer/cli",
   "version": "0.1.0",
+  "exports": "./src/main.ts",
   "tasks": {
     "dev": "deno run --allow-read --allow-write --allow-run --allow-env src/main.ts",
     "build": "deno compile --allow-read --allow-write --allow-run --allow-env --output=ghost src/main.ts",

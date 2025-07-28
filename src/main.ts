@@ -9,6 +9,7 @@ import { statusCommand } from "./cli/commands/status.ts";
 import { dependCommand } from "./cli/commands/depend.ts";
 import { availableCommand } from "./cli/commands/available.ts";
 import { tuiCommand } from "./cli/commands/tui.tsx";
+import { showCommand } from "./cli/commands/show.ts";
 
 const main = async () => {
   const argv = await yargs(Deno.args)
@@ -20,6 +21,7 @@ const main = async () => {
     .command(dependCommand)
     .command(availableCommand)
     .command(tuiCommand)
+    .command(showCommand)
     .demandCommand(1, "You need at least one command")
     .help()
     .alias("help", "h")

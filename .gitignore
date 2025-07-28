@@ -1,4 +1,8 @@
 # Deno
+CLAUDE.md
+deno.lock
+.claude/
+.kiro/
 /ghost
 .ghost/
 
