@@ -55,6 +55,7 @@ export const TuiApp: React.FC = () => {
     loadIssues();
   }, []);
 
+
   // Define actions
   const actions: ActionItem[] = useMemo(
     () => [
@@ -106,6 +107,7 @@ export const TuiApp: React.FC = () => {
   // Handle global key input
   useInput((input, key) => {
     if (appMode !== "view") return;
+
 
     switch (input.toLowerCase()) {
       case "c":

@@ -1,6 +1,10 @@
 import type { Issue, IssueTree } from "../types/issue.ts";
+import { gray, yellow, blue, green, red } from "@std/fmt/colors";
 
 export class IssueFormatter {
+  constructor() {
+  }
+
   formatText(issues: Issue[]): string {
     if (issues.length === 0) {
       return "No issues found.";
@@ -112,7 +116,7 @@ export class IssueFormatter {
   }
 
   private formatIssueText(issue: Issue, depth: number = 0, issueMap?: Map<string, Issue>): string {
-    const status = this.formatStatus(issue.status);
+    const status = this.formatStatusText(issue.status);
     const title = issue.title;
     
     // Add indentation based on depth
@@ -139,20 +143,39 @@ export class IssueFormatter {
     return line;
   }
 
-  private formatStatus(status: string): string {
+
+  private formatStatusText(status: string): string {
+    const statusText = this.getStatusLabel(status);
     switch (status) {
       case "plan":
-        return "📋";
+        return gray(statusText);
       case "backlog":
-        return "📌";
+        return yellow(statusText);
       case "in_progress":
-        return "🔄";
+        return blue(statusText);
       case "done":
-        return "✅";
+        return green(statusText);
       case "cancelled":
-        return "❌";
+        return red(statusText);
       default:
-        return "❓";
+        return statusText;
+    }
+  }
+
+  private getStatusLabel(status: string): string {
+    switch (status) {
+      case "plan":
+        return "[PLAN]";
+      case "backlog":
+        return "[BACKLOG]";
+      case "in_progress":
+        return "[IN PROGRESS]";
+      case "done":
+        return "[DONE]";
+      case "cancelled":
+        return "[CANCELLED]";
+      default:
+        return "[UNKNOWN]";
     }
   }
 
@@ -163,7 +186,7 @@ export class IssueFormatter {
     isLast: boolean,
   ): void {
     const connector = isLast ? "└── " : "├── ";
-    const status = this.formatStatus(node.status);
+    const status = this.formatStatusText(node.status);
     
     let line = `${prefix}${connector}${status} ${node.title}`;
     

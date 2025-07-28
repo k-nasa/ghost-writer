@@ -41,3 +41,10 @@ export interface ShowArguments extends BaseArguments {
   issueId: string;
   json?: boolean;
 }
+
+export interface UpdateArguments extends BaseArguments {
+  issueId: string;
+  status?: string;
+  title?: string;
+  description?: string;
+}
