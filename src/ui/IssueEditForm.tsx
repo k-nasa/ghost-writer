@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { Issue, IssueStatus } from "../types/issue.ts";
-import { MultilineTextInput } from "./MultilineTextInput.tsx";
 
 interface IssueEditFormProps {
   issue: Issue;
@@ -21,30 +20,10 @@ export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, o
   const [currentInput, setCurrentInput] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
-  // Handle ESC key to cancel and Tab for navigation
+  // Handle ESC key to cancel
   useInput((input, key) => {
     if (key.escape) {
       onCancel();
-    }
-    
-    // Tab to move to next field
-    if (key.tab && !key.shift) {
-      if (step === "title") {
-        handleSubmit(currentInput || issue.title);
-      } else if (step === "description") {
-        handleSubmit(currentInput);
-      }
-    }
-    
-    // Shift+Tab to go back
-    if (key.shift && key.tab) {
-      if (step === "description") {
-        setStep("title");
-        setCurrentInput(formData.title || issue.title);
-      } else if (step === "confirm") {
-        setStep("description");
-        setCurrentInput(formData.description || issue.description || "");
-      }
     }
   });
 
@@ -55,7 +34,7 @@ export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, o
       case "title":
         const newTitle = value.trim() || issue.title;
         setFormData((prev: Partial<Issue>) => ({ ...prev, title: newTitle }));
-        setCurrentInput(issue.description || "");
+        setCurrentInput(formData.description || "");
         setStep("description");
         break;
 
@@ -100,17 +79,13 @@ export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, o
         return (
           <Box flexDirection="column">
             <Text>Edit description (current: {issue.description || "(none)"}):</Text>
-            <Text color="gray">You can write multiple lines. Press Enter for new line.</Text>
-            <Box marginTop={1}>
-              <MultilineTextInput
-                value={currentInput}
-                onChange={setCurrentInput}
-                onSubmit={handleSubmit}
-                placeholder={issue.description || "Write your description here..."}
-                rows={5}
-                showLineNumbers={true}
-              />
-            </Box>
+            <Text color="gray">Press Enter to keep current value</Text>
+            <TextInput
+              value={currentInput}
+              onChange={setCurrentInput}
+              onSubmit={handleSubmit}
+              placeholder={issue.description || ""}
+            />
           </Box>
         );
 
@@ -154,11 +129,7 @@ export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, o
         {renderStep()}
       </Box>
       <Box marginTop={1}>
-        <Text color="gray">
-          {step !== "confirm" ? "Tab: Next • Shift+Tab: Previous • " : ""}
-          {step === "description" ? "Ctrl+Enter: Submit • " : ""}
-          ESC: Cancel
-        </Text>
+        <Text color="gray">Press ESC to cancel</Text>
       </Box>
     </Box>
   );
