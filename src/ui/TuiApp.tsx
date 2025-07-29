@@ -163,7 +163,7 @@ export const TuiApp: React.FC = () => {
       await issueService.createIssue({
         title: issueData.title!,
         description: issueData.description,
-        parentId: issueData.parentId,
+        parentId: issueData.parentId || currentNavState?.rootIssueId,
       });
       await loadIssues();
       setAppMode("view");
