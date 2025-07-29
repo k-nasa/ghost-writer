@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
+import { MultilineTextInput } from "./MultilineTextInput.tsx";
 import { Issue, IssueStatus } from "../types/issue.ts";
 
 interface IssueFormProps {
@@ -66,11 +67,16 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, onCancel }: Issu
         return (
           <Box flexDirection="column">
             <Text>Enter description (optional):</Text>
-            <TextInput
-              value={currentInput}
-              onChange={setCurrentInput}
-              onSubmit={handleSubmit}
-            />
+            <Box marginBottom={1}>
+              <MultilineTextInput
+                value={currentInput}
+                onChange={setCurrentInput}
+                onSubmit={handleSubmit}
+                placeholder="Enter description..."
+                height={5}
+                submitOnEnter={true}
+              />
+            </Box>
           </Box>
         );
 
@@ -78,7 +84,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, onCancel }: Issu
   };
 
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" borderStyle="round" borderColor="green" paddingX={1} paddingY={1}>
       <Text bold color="green">Create New Issue</Text>
       <Box marginTop={1} flexDirection="column">
         {error && (

@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
+import { MultilineTextInput } from "./MultilineTextInput.tsx";
 import { Issue, IssueStatus } from "../types/issue.ts";
 
 interface IssueEditFormProps {
@@ -9,7 +10,7 @@ interface IssueEditFormProps {
   onCancel: () => void;
 }
 
-type FormStep = "title" | "description" | "confirm";
+type FormStep = "title" | "description";
 
 export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, onCancel }: IssueEditFormProps) => {
   const [step, setStep] = React.useState<FormStep>("title");
@@ -40,21 +41,13 @@ export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, o
 
       case "description":
         setFormData((prev: Partial<Issue>) => ({ ...prev, description: value.trim() }));
-        setCurrentInput("");
-        setStep("confirm");
-        break;
-
-      case "confirm":
-        if (value.toLowerCase() === "y") {
-          // Only submit changed fields
-          const updates: Partial<Issue> = {};
-          if (formData.title !== issue.title) updates.title = formData.title;
-          if (formData.description !== issue.description) updates.description = formData.description;
-          
-          onSubmit(updates);
-        } else {
-          onCancel();
-        }
+        
+        // Only submit changed fields
+        const updates: Partial<Issue> = {};
+        if (formData.title !== issue.title) updates.title = formData.title;
+        if (value.trim() !== issue.description) updates.description = value.trim();
+        
+        onSubmit(updates);
         break;
     }
   };
@@ -79,48 +72,25 @@ export const IssueEditForm: React.FC<IssueEditFormProps> = ({ issue, onSubmit, o
         return (
           <Box flexDirection="column">
             <Text>Edit description (current: {issue.description || "(none)"}):</Text>
-            <Text color="gray">Press Enter to keep current value</Text>
-            <TextInput
-              value={currentInput}
-              onChange={setCurrentInput}
-              onSubmit={handleSubmit}
-              placeholder={issue.description || ""}
-            />
-          </Box>
-        );
-
-
-      case "confirm":
-        return (
-          <Box flexDirection="column">
-            <Text bold color="green">Review changes:</Text>
-            <Box marginTop={1} flexDirection="column">
-              {formData.title !== issue.title && (
-                <Text>Title: {issue.title} → {formData.title}</Text>
-              )}
-              {formData.description !== issue.description && (
-                <Text>Description: {issue.description || "(none)"} → {formData.description || "(none)"}</Text>
-              )}
-              {formData.title === issue.title && 
-               formData.description === issue.description && (
-                <Text color="gray">No changes made</Text>
-              )}
-            </Box>
-            <Box marginTop={1}>
-              <Text>Save changes? (y/n):</Text>
-              <TextInput
+            <Box marginBottom={1}>
+              <MultilineTextInput
                 value={currentInput}
                 onChange={setCurrentInput}
                 onSubmit={handleSubmit}
+                placeholder={issue.description || "Enter description..."}
+                height={5}
+                submitOnEnter={true}
               />
             </Box>
           </Box>
         );
+
+
     }
   };
 
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" borderStyle="round" borderColor="green" paddingX={1} paddingY={1}>
       <Text bold color="green">Edit Issue: {issue.title}</Text>
       <Box marginTop={1} flexDirection="column">
         {error && (
