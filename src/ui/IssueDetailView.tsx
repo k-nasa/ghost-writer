@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Text, useInput } from "ink";
 import { Issue } from "../types/issue.ts";
+import { MarkdownRenderer } from "./components/MarkdownRenderer.tsx";
 
 interface IssueDetailViewProps {
   issue: Issue;
@@ -15,8 +16,7 @@ export const IssueDetailView: React.FC<IssueDetailViewProps> = ({ issue, allIssu
     }
   });
 
-  // Split description by newlines for proper display
-  const descriptionLines = issue.description?.split('\n') || [];
+  // No longer needed as MarkdownRenderer handles line breaks
   
   // Get child issues by parentId
   const childIssues = allIssues.filter(i => i.parentId === issue.id);
@@ -75,14 +75,10 @@ export const IssueDetailView: React.FC<IssueDetailViewProps> = ({ issue, allIssu
         <Box flexDirection="column">
           <Text bold color="cyan" underline>Description:</Text>
           <Box marginTop={1} flexDirection="column">
-            {descriptionLines.length === 0 ? (
+            {!issue.description || issue.description.trim() === '' ? (
               <Text color="gray">(No description)</Text>
             ) : (
-              descriptionLines.map((line: string, index: number) => (
-                <Box key={index}>
-                  <Text>{line}</Text>
-                </Box>
-              ))
+              <MarkdownRenderer content={issue.description} />
             )}
           </Box>
         </Box>

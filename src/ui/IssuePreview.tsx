@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Text } from "ink";
 import { Issue } from "../types/issue.ts";
 import { ProgressCalculator } from "../domain/progress-calculator.ts";
+import { MarkdownRenderer } from "./components/MarkdownRenderer.tsx";
 
 interface IssuePreviewProps {
   issue: Issue | null;
@@ -137,16 +138,14 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
         <Box flexDirection="column" marginTop={1}>
           <Text color="gray">Description:</Text>
           <Box marginTop={1}>
-            <Text wrap="wrap">
-              {(() => {
-                const lines = issue.description.split("\n");
-                const maxLines = 20; // 少し増やして、より多くの情報を表示
-                if (lines.length > maxLines) {
-                  return lines.slice(0, maxLines).join("\n") + "\n...";
-                }
-                return issue.description;
-              })()}
-            </Text>
+            {(() => {
+              const lines = issue.description.split("\n");
+              const maxLines = 20; // プレビュー用の最大行数
+              const truncatedContent = lines.length > maxLines 
+                ? lines.slice(0, maxLines).join("\n") + "\n..." 
+                : issue.description;
+              return <MarkdownRenderer content={truncatedContent} />;
+            })()}
           </Box>
         </Box>
       )}
