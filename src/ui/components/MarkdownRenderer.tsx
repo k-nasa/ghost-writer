@@ -81,12 +81,12 @@ const parseInlineFormatting = (text: string): React.ReactNode => {
       {segments.map((segment, i) => {
         if (segment.startsWith('__BOLD_')) {
           const content = segment.match(/__BOLD_\d+_([^_]+)__/)?.[1] || '';
-          return <Text bold>{content}</Text>;
+          return <React.Fragment key={i}><Text bold>{content}</Text></React.Fragment>;
         } else if (segment.startsWith('__ITALIC_')) {
           const content = segment.match(/__ITALIC_\d+_([^_]+)__/)?.[1] || '';
-          return <Text dimColor>{content}</Text>;
+          return <React.Fragment key={i}><Text dimColor>{content}</Text></React.Fragment>;
         } else if (segment) {
-          return <Text>{segment}</Text>;
+          return <React.Fragment key={i}><Text>{segment}</Text></React.Fragment>;
         }
         return null;
       })}
